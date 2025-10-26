@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SBV-Constriction v2 (Likely & Lovely) \u2014 Tiny Schema",
+  "type": "object",
+  "required": [
+    "company",
+    "homepage",
+    "as_of_date",
+    "analysis_run_id",
+    "config_hash",
+    "constriction",
+    "readiness",
+    "likely_lovely",
+    "bottlenecks",
+    "citations"
+  ],
+  "properties": {
+    "company": {
+      "type": "string"
+    },
+    "homepage": {
+      "type": "string"
+    },
+    "as_of_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "analysis_run_id": {
+      "type": "string"
+    },
+    "config_hash": {
+      "type": "string"
+    },
+    "constriction": {
+      "type": "object",
+      "required": [
+        "k",
+        "S",
+        "Md",
+        "Mx",
+        "Cx",
+        "CI_fix",
+        "CI_mode"
+      ],
+      "properties": {
+        "k": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "S": {
+          "type": "number"
+        },
+        "Md": {
+          "type": "number"
+        },
+        "Mx": {
+          "type": "number"
+        },
+        "Cx": {
+          "type": "number"
+        },
+        "CI_fix": {
+          "type": "number"
+        },
+        "CI_mode": {
+          "type": "string",
+          "enum": [
+            "fixed",
+            "cohort"
+          ]
+        },
+        "CI_cohort": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "S_norm_fix": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "Md_norm_fix": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "Mx_norm_fix": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "Cx_norm_fix": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "required": [
+        "TRL_raw",
+        "IRL_raw",
+        "ORL_raw",
+        "RCL_raw",
+        "TRL_adj",
+        "IRL_adj",
+        "ORL_adj",
+        "RCL_adj",
+        "RI",
+        "EP",
+        "RI_skeptical",
+        "RAR"
+      ],
+      "properties": {
+        "TRL_raw": {
+          "type": "number"
+        },
+        "IRL_raw": {
+          "type": "number"
+        },
+        "ORL_raw": {
+          "type": "number"
+        },
+        "RCL_raw": {
+          "type": "number"
+        },
+        "TRL_adj": {
+          "type": "number"
+        },
+        "IRL_adj": {
+          "type": "number"
+        },
+        "ORL_adj": {
+          "type": "number"
+        },
+        "RCL_adj": {
+          "type": "number"
+        },
+        "RI": {
+          "type": "number"
+        },
+        "EP": {
+          "type": "number"
+        },
+        "RI_skeptical": {
+          "type": "number"
+        },
+        "RAR": {
+          "type": "number"
+        }
+      }
+    },
+    "likely_lovely": {
+      "type": "object",
+      "required": [
+        "E",
+        "T",
+        "SP",
+        "LS_norm",
+        "LV",
+        "LV_norm",
+        "CCF"
+      ],
+      "properties": {
+        "E": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "T": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "SP": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "LS_norm": {
+          "type": "number"
+        },
+        "LV": {
+          "type": "number"
+        },
+        "LV_norm": {
+          "type": "number"
+        },
+        "CCF": {
+          "type": "number"
+        }
+      }
+    },
+    "bottlenecks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "location",
+          "severity_raw",
+          "severity_adj",
+          "verified",
+          "owner",
+          "timeframe"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "severity_raw": {
+            "type": "number"
+          },
+          "severity_adj": {
+            "type": "number"
+          },
+          "verified": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "partial",
+              "unverified"
+            ]
+          },
+          "owner": {
+            "type": "string"
+          },
+          "timeframe": {
+            "type": "string"
+          },
+          "evidence_strength": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "claim",
+          "url",
+          "date_seen"
+        ],
+        "properties": {
+          "claim": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "date_seen": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "wayback": {
+      "type": "object",
+      "properties": {
+        "snapshot_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "snapshot_datetime": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "funding_since_snapshot": {
+      "type": "object",
+      "properties": {
+        "total_usd": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

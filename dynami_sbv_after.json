@@ -1,0 +1,176 @@
+{
+  "company": "Dynami Battery Corp",
+  "homepage": "https://dynami-battery.com/",
+  "as_of_date": "2025-10-26",
+  "analysis_run_id": "dynami_after_2025-10-26",
+  "config_hash": "647c417e07187cf1f7fa902a368da0ca6778d0bd6147d4d36b2b87400a667005",
+  "constriction": {
+    "k": 7,
+    "S": 29,
+    "Md": 4.0,
+    "Mx": 5.0,
+    "Cx": 1.25,
+    "S_norm_fix": 0.8285714285714286,
+    "Md_norm_fix": 0.8,
+    "Mx_norm_fix": 1.0,
+    "Cx_norm_fix": 0.25,
+    "CI_fix": 0.7875,
+    "CI_mode": "fixed",
+    "CI_cohort": null
+  },
+  "readiness": {
+    "TRL_raw": 5.0,
+    "IRL_raw": 3.5,
+    "ORL_raw": 3.5,
+    "RCL_raw": 1.5,
+    "TRL_adj": 5.0,
+    "IRL_adj": 3.5,
+    "ORL_adj": 3.5,
+    "RCL_adj": 1.5,
+    "RI": 0.34399872157996025,
+    "EP": 0.8125,
+    "RI_skeptical": 0.2794989612837177,
+    "RAR": 0.05939352927279002
+  },
+  "likely_lovely": {
+    "E": 2,
+    "T": 4,
+    "SP": 3,
+    "LS_norm": 0.55,
+    "LV": 4,
+    "LV_norm": 0.8,
+    "CCF": 0.44000000000000006
+  },
+  "bottlenecks": [
+    {
+      "id": "B1",
+      "type": "technical",
+      "location": "process",
+      "severity_raw": 5,
+      "severity_adj": 5,
+      "verified": "verified",
+      "owner": "Dynami + vendors",
+      "timeframe": "0\u201324m",
+      "evidence_strength": 2,
+      "citations": [
+        "https://www.third-derivative.org/portfolio/dynami-battery"
+      ]
+    },
+    {
+      "id": "B2",
+      "type": "EHS/process",
+      "location": "solvents",
+      "severity_raw": 4,
+      "severity_adj": 4,
+      "verified": "partial",
+      "owner": "Dynami/BU",
+      "timeframe": "0\u201318m",
+      "evidence_strength": 2,
+      "citations": [
+        "https://thekoffman.com/dynami-brings-power-and-safer-production-to-battery-innovation/"
+      ]
+    },
+    {
+      "id": "B3",
+      "type": "market",
+      "location": "customer",
+      "severity_raw": 5,
+      "severity_adj": 5,
+      "verified": "verified",
+      "owner": "Dynami + cell OEM",
+      "timeframe": "6\u201324m",
+      "evidence_strength": 1,
+      "citations": [
+        "https://www.third-derivative.org/portfolio/dynami-battery"
+      ]
+    },
+    {
+      "id": "B4",
+      "type": "regulatory",
+      "location": "certs",
+      "severity_raw": 4,
+      "severity_adj": 4,
+      "verified": "verified",
+      "owner": "Dynami/test labs",
+      "timeframe": "6\u201324m",
+      "evidence_strength": 1,
+      "citations": [
+        "https://dynami-battery.com/"
+      ]
+    },
+    {
+      "id": "B5",
+      "type": "economics",
+      "location": "pilot",
+      "severity_raw": 4,
+      "severity_adj": 4,
+      "verified": "partial",
+      "owner": "Dynami/partner",
+      "timeframe": "12\u201336m",
+      "evidence_strength": 1,
+      "citations": [
+        "https://dynami-battery.com/"
+      ]
+    },
+    {
+      "id": "B6",
+      "type": "integration",
+      "location": "mfg line",
+      "severity_raw": 3,
+      "severity_adj": 3,
+      "verified": "verified",
+      "owner": "Integrators",
+      "timeframe": "12\u201324m",
+      "evidence_strength": 1,
+      "citations": [
+        "https://dynami-battery.com/"
+      ]
+    },
+    {
+      "id": "B7",
+      "type": "capital",
+      "location": "finance",
+      "severity_raw": 4,
+      "severity_adj": 4,
+      "verified": "partial",
+      "owner": "Dynami/investors",
+      "timeframe": "6\u201324m",
+      "evidence_strength": 1,
+      "citations": [
+        "https://thekoffman.com/dynami-keeping-their-momentum-high/"
+      ]
+    }
+  ],
+  "citations": [
+    {
+      "claim": "Company homepage (value prop & services)",
+      "url": "https://dynami-battery.com/",
+      "date_seen": "2025-10-26"
+    },
+    {
+      "claim": "Third Derivative portfolio entry (5x faster claim; chemistry-agnostic)",
+      "url": "https://www.third-derivative.org/portfolio/dynami-battery",
+      "date_seen": "2025-10-26"
+    },
+    {
+      "claim": "Koffman 2025 update (NSF-backed work; prototyping)",
+      "url": "https://thekoffman.com/dynami-brings-power-and-safer-production-to-battery-innovation/",
+      "date_seen": "2025-10-26"
+    },
+    {
+      "claim": "FuzeHub 2023 grant (NECCES/Dynami)",
+      "url": "https://oswegocountytoday.com/news/fuzehub-announces-second-round-of-2023-grant-awards-to-support-innovations-in-manufacturing-throughout-new-york-state/",
+      "date_seen": "2025-10-26"
+    },
+    {
+      "claim": "NECCES dry-room infrastructure (context)",
+      "url": "https://www.binghamton.edu/centers/necces/dry-room/",
+      "date_seen": "2025-10-26"
+    }
+  ],
+  "wayback": {
+    "snapshot_url": null,
+    "snapshot_datetime": null,
+    "note": "No public snapshot found on 2025-10-26 via Wayback pattern search."
+  }
+}
