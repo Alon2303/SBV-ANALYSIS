@@ -40,7 +40,7 @@ matplotlib==3.8.2
 
 # Utilities
 python-dotenv==1.0.1
-python-multipart==0.0.6
+python-multipart==0.0.18
 httpx==0.26.0
 tenacity==8.2.3
 click==8.1.7
