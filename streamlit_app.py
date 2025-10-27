@@ -11,4 +11,4 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "sbv-pipeline"))
 
 # Import the dashboard (this will execute it)
-from sbv_pipeline.src.dashboard import app
+from src.dashboard import app
