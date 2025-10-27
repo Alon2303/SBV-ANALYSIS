@@ -9,13 +9,35 @@ echo "================================"
 echo ""
 
 # Check Python version
-python_version=$(python3 --version 2>&1 | grep -oP '\d+\.\d+')
-required_version="3.11"
+python_version=$(python3 --version 2>&1 | awk '{print $2}')
+major=$(echo $python_version | cut -d. -f1)
+minor=$(echo $python_version | cut -d. -f2)
 
-if (( $(echo "$python_version < $required_version" | bc -l) )); then
-    echo "❌ Error: Python $required_version or higher is required"
+echo "Detected Python version: $python_version"
+
+if [ "$major" -lt 3 ] || ([ "$major" -eq 3 ] && [ "$minor" -lt 11 ]); then
+    echo "❌ Error: Python 3.11 or 3.12 is required"
     echo "   Current version: $python_version"
+    echo "   Install Python 3.11: brew install python@3.11"
     exit 1
+fi
+
+if [ "$major" -eq 3 ] && [ "$minor" -ge 13 ]; then
+    echo "⚠️  Warning: Python $python_version is too new"
+    echo "   Many packages are not compatible with Python 3.13 yet"
+    echo "   Recommended: Python 3.11 or 3.12"
+    echo ""
+    echo "To fix:"
+    echo "  1. brew install python@3.11"
+    echo "  2. Remove venv: rm -rf venv"
+    echo "  3. Create new venv: python3.11 -m venv venv"
+    echo "  4. Run this script again"
+    echo ""
+    read -p "Continue anyway? (not recommended) [y/N]: " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
 fi
 
 echo "✓ Python version: $python_version"
@@ -39,12 +61,21 @@ echo "✓ pip upgraded"
 
 # Install requirements
 echo "Installing dependencies..."
-pip install -r requirements.txt > /dev/null 2>&1
+echo "  (Using minimal requirements for SQLite mode)"
+pip install -r requirements-minimal.txt
+if [ $? -ne 0 ]; then
+    echo "❌ Error installing dependencies"
+    exit 1
+fi
 echo "✓ Dependencies installed"
 
 # Install Playwright browsers
 echo "Installing Playwright browsers..."
-playwright install chromium > /dev/null 2>&1
+python -m playwright install chromium > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "❌ Error installing Playwright browsers"
+    exit 1
+fi
 echo "✓ Playwright browsers installed"
 
 # Create directories

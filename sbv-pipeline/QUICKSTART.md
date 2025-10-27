@@ -2,9 +2,11 @@
 
 ## Prerequisites
 
-- Python 3.11+
+- **Python 3.11 or 3.12** (⚠️ NOT 3.13 - too new, many packages incompatible)
 - OpenAI API key or Anthropic API key
 - 8GB+ RAM (for concurrent processing)
+
+> **Important:** If you have Python 3.13, see `PYTHON_VERSION_FIX.md` to install Python 3.11/3.12
 
 ## Installation
 
@@ -16,17 +18,56 @@ cd /Users/alonofir/Documents/P/sbv-pipeline
 
 ### 2. Create Virtual Environment
 
+**Check Python version first:**
+
+```bash
+python3 --version
+# Should be 3.11.x or 3.12.x (NOT 3.13)
+```
+
+If you have Python 3.13, install Python 3.11:
+
+```bash
+brew install python@3.11
+python3.11 -m venv venv
+```
+
+Otherwise:
+
 ```bash
 python3 -m venv venv
+```
+
+**Activate:**
+
+```bash
 source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
 
+**For SQLite Mode (Recommended for standalone):**
+
 ```bash
-pip install -r requirements.txt
-playwright install chromium
+# Install Python packages
+pip install -r requirements-minimal.txt
+
+# Install Playwright browsers
+python -m playwright install chromium
 ```
+
+**For PostgreSQL Mode (Production):**
+
+```bash
+# Install PostgreSQL first
+brew install postgresql
+
+# Then install all requirements
+pip install -r requirements.txt
+python -m playwright install chromium
+```
+
+**Troubleshooting:** See `INSTALL_TROUBLESHOOTING.md` if you encounter errors.
 
 ### 4. Configure Environment
 

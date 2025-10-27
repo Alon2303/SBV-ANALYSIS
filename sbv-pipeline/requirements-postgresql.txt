@@ -1,0 +1,6 @@
+# Additional requirements for PostgreSQL support
+# Install AFTER requirements-minimal.txt
+# Requires PostgreSQL to be installed: brew install postgresql
+
+psycopg2-binary==2.9.9
+

@@ -29,10 +29,20 @@ The SBV Analysis Pipeline is a production-ready system that automates the analys
 
 ## 🚀 Quick Start
 
+> ⚠️ **Important:** Use Python 3.11 or 3.12 (NOT 3.13). If you have Python 3.13, see [`PYTHON_VERSION_FIX.md`](PYTHON_VERSION_FIX.md) first.
+
 ### One-Command Setup
 
 ```bash
 cd /Users/alonofir/Documents/P/sbv-pipeline
+
+# Check Python version (should be 3.11.x or 3.12.x)
+python3 --version
+
+# If you need Python 3.11:
+# brew install python@3.11
+# python3.11 -m venv venv && source venv/bin/activate
+
 ./setup.sh
 ```
 
