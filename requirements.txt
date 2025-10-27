@@ -2,9 +2,9 @@
 # This is a minimal set for dashboard-only deployment
 # For full pipeline, see requirements-minimal.txt
 
-# Core (Python 3.13 compatible versions)
-pydantic==2.9.0
-pydantic-settings==2.5.0
+# Core (Python 3.11 compatible versions)
+pydantic==2.5.3
+pydantic-settings==2.1.0
 
 # Database (SQLite only - no PostgreSQL)
 sqlalchemy==2.0.25
