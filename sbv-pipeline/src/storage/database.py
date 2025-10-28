@@ -7,10 +7,11 @@ from typing import Generator
 
 from ..config import settings
 
-# Create engine
+# Create engine with absolute path
+db_url = settings.database_path if hasattr(settings, 'database_path') else settings.database_url
 engine = create_engine(
-    settings.database_url,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {},
+    db_url,
+    connect_args={"check_same_thread": False} if "sqlite" in db_url else {},
     echo=settings.environment == "development"
 )
 

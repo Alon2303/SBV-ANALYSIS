@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     output_dir: Path = data_dir / "output"
     schema_dir: Path = project_root / "schemas"
     
+    @property
+    def database_path(self) -> str:
+        """Get absolute database path."""
+        db_file = self.data_dir / "sbv.db"
+        return f"sqlite:///{db_file.absolute()}"
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
