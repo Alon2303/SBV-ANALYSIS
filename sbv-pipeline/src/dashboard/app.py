@@ -723,16 +723,13 @@ def main():
             "E", "T", "SP", "LV", "Bottlenecks"
         ]
         
+        # Format numeric columns
+        formatted_df = filtered_df[display_cols].copy()
+        for col in ["CCF", "RI_Skeptical", "CI", "RAR"]:
+            formatted_df[col] = formatted_df[col].apply(lambda x: f"{x:.3f}")
+        
         st.dataframe(
-            filtered_df[display_cols].style.format({
-                "CCF": "{:.3f}",
-                "RI_Skeptical": "{:.3f}",
-                "CI": "{:.3f}",
-                "RAR": "{:.3f}"
-            }).background_gradient(
-                subset=["CCF", "RI_Skeptical"],
-                cmap="RdYlGn"
-            ),
+            formatted_df,
             use_container_width=True,
             height=400
         )
