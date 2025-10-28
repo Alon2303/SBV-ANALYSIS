@@ -1,12 +1,27 @@
 # Streamlit Cloud Compatible Requirements
-# Minimal dependencies - only pre-built wheels
+# Full dependencies for dashboard + analysis
 
+# Dashboard
 streamlit
 plotly
 pandas
 sqlalchemy
-pydantic
-pydantic-settings
+pydantic==2.5.3
+pydantic-settings==2.1.0
 python-dotenv
 matplotlib
+
+# AI & Research
+openai>=1.0.0
+anthropic
+
+# Web Scraping
+playwright
+beautifulsoup4
+lxml
+requests
+aiohttp
+
+# CLI
+click
 

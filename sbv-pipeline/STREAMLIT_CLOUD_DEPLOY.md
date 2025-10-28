@@ -66,22 +66,23 @@ Streamlit Cloud will:
 
 Streamlit Cloud looks for `requirements.txt` in your repo root.
 
-**For dashboard-only deployment**, use the minimal requirements:
+**The main `requirements.txt`** now includes both dashboard AND analysis dependencies:
+- streamlit, plotly, pandas (dashboard)
+- openai, anthropic (LLM for analysis)
+- playwright, beautifulsoup4 (web scraping)
+- sqlalchemy, pydantic (data management)
 
-```bash
-# Copy minimal requirements
-cp requirements-streamlit.txt requirements.txt
+This allows users to run new analyses directly from the UI.
 
-# Or if you already have requirements.txt, Streamlit will use it
-# Just make sure it doesn't include packages that need compilation
+### System Dependencies
+
+For web scraping with Playwright, you also need a `packages.txt` file:
+```
+chromium
+chromium-driver
 ```
 
-The `requirements-streamlit.txt` contains only what's needed for the dashboard:
-- streamlit
-- plotly
-- pandas
-- sqlalchemy
-- pydantic
+**Note**: Playwright on Streamlit Cloud may have limitations. The pipeline will automatically fall back to simpler HTTP scraping if Playwright fails.
 
 ---
 
@@ -114,17 +115,25 @@ git push
 
 Set this in Advanced Settings when deploying.
 
-### Secrets
+### Secrets (Required for Analysis Feature)
 
-If you need API keys (not required for dashboard-only), add to Streamlit Secrets:
+**⚠️ REQUIRED** for running new analyses from the UI:
 
 1. In Streamlit Cloud dashboard, go to your app settings
 2. Click "Secrets"
-3. Add:
+3. Add your OpenAI API key:
+
 ```toml
-OPENAI_API_KEY = "sk-your-key"
-DATABASE_URL = "sqlite:///./data/sbv.db"
+OPENAI_API_KEY = "sk-proj-your-actual-key-here"
 ```
+
+**Format Notes:**
+- Use TOML format (not JSON)
+- No quotes around the key name
+- Include quotes around the value
+- Each secret on its own line
+
+**Without the API key**, users can still view existing analyses but cannot run new ones.
 
 ---
 
