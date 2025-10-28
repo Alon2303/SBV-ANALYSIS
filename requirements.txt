@@ -1,23 +1,12 @@
-# Streamlit Cloud Compatible Requirements
-# Minimal set to avoid compilation issues
-
-# Dashboard
+# Streamlit Cloud - Ultra Minimal Requirements
 streamlit
 plotly
 pandas
 sqlalchemy
-pydantic==2.5.3
-pydantic-settings==2.1.0
+pydantic
+pydantic-settings
 python-dotenv
-matplotlib
-
-# AI & Research
-openai>=1.0.0
-
-# Web Scraping (simple, no compilation needed)
+openai
 beautifulsoup4
 requests
-
-# CLI
-click
 
