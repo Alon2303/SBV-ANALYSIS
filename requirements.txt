@@ -5,5 +5,7 @@ streamlit
 plotly
 pandas
 sqlalchemy
+pydantic
+pydantic-settings
 python-dotenv
 
