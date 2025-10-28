@@ -15,8 +15,7 @@ matplotlib
 openai>=1.0.0
 anthropic
 
-# Web Scraping
-playwright
+# Web Scraping (Playwright excluded - doesn't work on Streamlit Cloud)
 beautifulsoup4
 lxml
 requests
