@@ -89,10 +89,439 @@ def run_analysis(companies: list):
         return None, str(e)
 
 
+def show_wiki_page():
+    """Display comprehensive SBV Wiki and Metrics Guide."""
+    st.title("📖 SBV Wiki & Metrics Reference Guide")
+    st.markdown("### Strategic Bottleneck Validation - Complete Terminology & Formulas")
+    
+    # Table of contents
+    st.markdown("---")
+    st.markdown("**Quick Navigation:**")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("• [Core Metrics](#core-metrics)")
+        st.markdown("• [Likely & Lovely](#likely-lovely-metrics)")
+    with col2:
+        st.markdown("• [Readiness Levels](#readiness-levels)")
+        st.markdown("• [Constriction](#constriction-components)")
+    with col3:
+        st.markdown("• [Verification](#verification-and-penalties)")
+        st.markdown("• [Bottlenecks](#bottlenecks)")
+    
+    st.markdown("---")
+    
+    # Core Metrics Section
+    st.header("🎯 Core Metrics")
+    
+    with st.expander("**CCF - Claim Confidence Factor** (Range: 0.0 - 1.0)", expanded=True):
+        st.markdown("""
+        **Definition:** The overall confidence in the company's entrepreneurial claims, combining both plausibility (Likely) and value (Lovely).
+        
+        **Formula:**
+        ```
+        CCF = LS_norm × LV_norm
+        ```
+        
+        **Components:**
+        - `LS_norm`: Normalized Likely Score (plausibility)
+        - `LV_norm`: Normalized Lovely Score (value/impact)
+        
+        **Interpretation:**
+        - **0.7 - 1.0**: Very high confidence - strong evidence + high impact
+        - **0.5 - 0.7**: Good confidence - solid basis with meaningful value
+        - **0.3 - 0.5**: Moderate confidence - some concerns or limited evidence
+        - **0.0 - 0.3**: Low confidence - weak evidence or low impact
+        
+        **Example:** A claim with perfect evidence and theory (LS=1.0) but modest impact (LV=0.6) yields CCF=0.6.
+        """)
+    
+    with st.expander("**CI - Constriction Index** (Range: 0.0 - 1.0)"):
+        st.markdown("""
+        **Definition:** Measures how constrained/bottlenecked the company is. Higher = more friction.
+        
+        **Formula:**
+        ```
+        CI_fix = 0.40·(S/S_max) + 0.30·(Md/5) + 0.20·(Mx/5) + 0.10·Cx
+        ```
+        
+        **Components:**
+        - `S`: Total adjusted severity of all bottlenecks
+        - `S_max`: Maximum possible severity (k × 5, where k = number of bottlenecks)
+        - `Md`: Median severity (0-5)
+        - `Mx`: Maximum severity (0-5)
+        - `Cx`: Complexity factor (1.0 + 0.05 × number of cross-dependencies)
+        
+        **Interpretation:**
+        - **0.8 - 1.0**: Severely constrained - many critical blockers
+        - **0.6 - 0.8**: Moderately constrained - significant challenges ahead
+        - **0.3 - 0.6**: Some friction - manageable bottlenecks
+        - **0.0 - 0.3**: Low friction - clear path forward
+        
+        **Note:** This is a "bad is high" metric - you want LOW constriction.
+        """)
+    
+    with st.expander("**RI_Skeptical - Skeptical Readiness Index** (Range: 0.0 - 1.0)"):
+        st.markdown("""
+        **Definition:** The company's readiness to execute, adjusted for unverified claims (skeptical discount).
+        
+        **Formula:**
+        ```
+        RI = 0.40·(TRL/9) + 0.25·(IRL/9) + 0.20·(ORL/9) + 0.15·(RCL/9)
+        
+        EP (Evidence Penalty) = 1 - α·p_unver
+            where α = 0.25 (default)
+            p_unver = fraction of critical claims that are unverified
+        
+        RI_skeptical = RI × EP
+        ```
+        
+        **Components:**
+        - `TRL`: Technology Readiness Level (1-9)
+        - `IRL`: Integration Readiness Level (1-9)
+        - `ORL`: Operations Readiness Level (1-9)
+        - `RCL`: Regulatory/Compliance Readiness Level (1-9)
+        - `EP`: Evidence Penalty for unverified claims
+        
+        **Interpretation:**
+        - **0.7 - 1.0**: Highly ready - near deployment
+        - **0.5 - 0.7**: Moderately ready - advanced development
+        - **0.3 - 0.5**: Early stage - significant work remains
+        - **0.0 - 0.3**: Very early - proof-of-concept stage
+        """)
+    
+    with st.expander("**RAR - Readiness-Adjusted Risk** (Range: 0.0 - 1.0)"):
+        st.markdown("""
+        **Definition:** Overall risk metric combining bottlenecks and readiness. Higher = more risk.
+        
+        **Formula:**
+        ```
+        RAR = CI_fix × (1 - RI_skeptical)
+        ```
+        
+        **Interpretation:**
+        - **0.7 - 1.0**: Very high risk - constrained + not ready
+        - **0.5 - 0.7**: High risk - significant challenges
+        - **0.3 - 0.5**: Moderate risk - manageable concerns
+        - **0.0 - 0.3**: Low risk - good position to execute
+        
+        **Example:** High constriction (CI=0.8) + low readiness (RI=0.2) → RAR = 0.8 × 0.8 = 0.64 (high risk)
+        """)
+    
+    # Likely & Lovely Section
+    st.header("🎲 Likely & Lovely Metrics")
+    
+    with st.expander("**E - Evidence Score** (Scale: 1-5)"):
+        st.markdown("""
+        **Definition:** Quality and quantity of independent evidence supporting the claims.
+        
+        **Scale:**
+        - **5**: Independent production data, third-party performance curves, certifications
+        - **4**: Pilot results, customer testimonials, credible third-party reports
+        - **3**: Some third-party mentions, acceleration/grant awards
+        - **2**: Company claims + ecosystem mentions only
+        - **1**: No public evidence beyond company statements
+        
+        **Weight in Likely Score:** 50% (highest weight)
+        """)
+    
+    with st.expander("**T - Theory Score** (Scale: 1-5)"):
+        st.markdown("""
+        **Definition:** Theoretical/scientific plausibility based on peer-reviewed research and standards.
+        
+        **Scale:**
+        - **5**: Strong peer-reviewed support, proven mechanisms
+        - **4**: Good theoretical basis, published research exists
+        - **3**: Plausible mechanism, some academic work
+        - **2**: Speculative but not impossible
+        - **1**: Contradicts known physics/chemistry
+        
+        **Weight in Likely Score:** 25%
+        
+        **Note:** Always cite sources (papers, standards, textbooks)
+        """)
+    
+    with st.expander("**SP - Social Proof Score** (Scale: 1-5)"):
+        st.markdown("""
+        **Definition:** Credibility signals from respected third parties.
+        
+        **Scale:**
+        - **5**: Major customers/partners, top-tier VCs, government contracts
+        - **4**: Reputable accelerator, significant grants, advisory board
+        - **3**: Known accelerator, smaller grants, some partnerships
+        - **2**: Local/regional support only
+        - **1**: No notable third-party endorsements
+        
+        **Weight in Likely Score:** 25%
+        """)
+    
+    with st.expander("**LV - Lovely Score** (Scale: 1-5)"):
+        st.markdown("""
+        **Definition:** How valuable/impactful the claim would be if true.
+        
+        **Scale:**
+        - **5**: Transformative impact - major decarbonization, cost reduction, safety improvement
+        - **4**: Significant value - meaningful improvement over incumbents
+        - **3**: Moderate value - incremental but useful improvement
+        - **2**: Minor value - marginal improvement
+        - **1**: Negligible value - "me too" product
+        
+        **Note:** Lovely is independent of Likely - a claim can be very valuable but unlikely, or vice versa.
+        """)
+    
+    with st.expander("**LS_norm - Normalized Likely Score** (Range: 0.0 - 1.0)"):
+        st.markdown("""
+        **Definition:** Composite plausibility score combining Evidence, Theory, and Social Proof.
+        
+        **Formula:**
+        ```
+        LS_norm = (0.5·E + 0.25·T + 0.25·SP) / 5
+        ```
+        
+        **Interpretation:**
+        - **0.8 - 1.0**: Highly likely - strong evidence across all dimensions
+        - **0.6 - 0.8**: Likely - good support with minor gaps
+        - **0.4 - 0.6**: Uncertain - mixed evidence
+        - **0.2 - 0.4**: Unlikely - weak support
+        - **0.0 - 0.2**: Very unlikely - little credible evidence
+        """)
+    
+    with st.expander("**LV_norm - Normalized Lovely Score** (Range: 0.0 - 1.0)"):
+        st.markdown("""
+        **Definition:** Normalized version of the Lovely score.
+        
+        **Formula:**
+        ```
+        LV_norm = LV / 5
+        ```
+        """)
+    
+    # Readiness Levels Section
+    st.header("🔧 Readiness Levels")
+    
+    with st.expander("**TRL - Technology Readiness Level** (Scale: 1-9)"):
+        st.markdown("""
+        **Definition:** Maturity of the core technology (NASA/DOE standard scale).
+        
+        **Scale:**
+        - **9**: Actual system proven in operational environment
+        - **7-8**: System prototype demonstration in operational environment
+        - **5-6**: Technology/component validated in relevant environment
+        - **3-4**: Proof of concept, lab validation
+        - **1-2**: Basic principles observed, concept formulated
+        
+        **Weight in RI:** 40% (highest)
+        """)
+    
+    with st.expander("**IRL - Integration Readiness Level** (Scale: 1-9)"):
+        st.markdown("""
+        **Definition:** How well the technology integrates with existing systems/infrastructure.
+        
+        **Scale:**
+        - **9**: Fully integrated and field-proven
+        - **7-8**: Integration demonstrated in operational environment
+        - **5-6**: Integration validated in relevant environment
+        - **3-4**: Integration paths identified and tested in lab
+        - **1-2**: Integration not yet considered
+        
+        **Weight in RI:** 25%
+        """)
+    
+    with st.expander("**ORL - Operations Readiness Level** (Scale: 1-9)"):
+        st.markdown("""
+        **Definition:** Readiness of manufacturing, supply chain, and operational processes.
+        
+        **Scale:**
+        - **9**: Full-scale production, proven supply chain
+        - **7-8**: Pilot production line operational
+        - **5-6**: Manufacturing process validated at small scale
+        - **3-4**: Manufacturing concept developed
+        - **1-2**: No manufacturing plan yet
+        
+        **Weight in RI:** 20%
+        """)
+    
+    with st.expander("**RCL - Regulatory/Compliance Readiness Level** (Scale: 1-9)"):
+        st.markdown("""
+        **Definition:** Progress toward required certifications, standards, and regulatory approvals.
+        
+        **Scale:**
+        - **9**: All certifications obtained, fully compliant
+        - **7-8**: Major certifications in progress or obtained
+        - **5-6**: Standards identified, pre-certification testing
+        - **3-4**: Regulatory pathway identified
+        - **1-2**: No regulatory plan yet
+        
+        **Weight in RI:** 15%
+        
+        **Examples:** UL listing, IEC standards, UN 38.3 (batteries), FDA approval
+        """)
+    
+    # Constriction Components
+    st.header("🚧 Constriction Components")
+    
+    with st.expander("**Bottleneck Severity** (Scale: 0-5)"):
+        st.markdown("""
+        **Definition:** How critical each bottleneck is to progress.
+        
+        **Scale:**
+        - **5**: Critical blocker - company cannot proceed without resolving
+        - **4**: Major impediment - significant delays if not addressed
+        - **3**: Moderate friction - workarounds exist but costly
+        - **2**: Minor issue - manageable with current resources
+        - **1**: Negligible - easily resolved
+        - **0**: Not a real bottleneck
+        
+        **Adjustment:** Severity is reduced by verification score (VS) if claims are unverified.
+        """)
+    
+    with st.expander("**k - Number of Bottlenecks**"):
+        st.markdown("""
+        **Definition:** Total count of identified bottlenecks.
+        
+        **Typical Categories:**
+        - Technical (scale-up, performance validation)
+        - Manufacturing (production readiness, supply chain)
+        - Regulatory (certifications, standards compliance)
+        - Market (customer acquisition, anchor pilots)
+        - Financial (capital requirements, unit economics)
+        - Integration (compatibility, system-level validation)
+        
+        **Impact:** More bottlenecks generally → higher CI (constriction)
+        """)
+    
+    with st.expander("**Cx - Complexity Factor**"):
+        st.markdown("""
+        **Definition:** Adjustment for interdependencies between bottlenecks.
+        
+        **Formula:**
+        ```
+        Cx = 1.0 + 0.05 × (number of cross-dependencies)
+        ```
+        
+        **Example:** If bottleneck A (manufacturing scale-up) depends on bottleneck B (unit economics proof), that's a cross-dependency.
+        
+        **Impact:** Cross-dependencies amplify constriction because resolving one bottleneck may not unblock progress.
+        """)
+    
+    # Verification Section
+    st.header("✅ Verification & Penalties")
+    
+    with st.expander("**VS - Verification Score** (Values: 1.0, 0.8, 0.6)"):
+        st.markdown("""
+        **Definition:** Discount factor applied to metrics based on verification status.
+        
+        **Values:**
+        - **1.0**: Verified - independent third-party confirmation
+        - **0.8**: Partial - some corroboration but not fully independent
+        - **0.6**: Unverified - company claim only, no independent support
+        
+        **Applied to:** TRL, IRL, ORL, RCL, bottleneck severities
+        
+        **Purpose:** Implements "skeptical discounting" to avoid over-reliance on unverified claims.
+        """)
+    
+    with st.expander("**EP - Evidence Penalty** (Range: 0.0 - 1.0)"):
+        st.markdown("""
+        **Definition:** Penalty applied to readiness when critical claims lack verification.
+        
+        **Formula:**
+        ```
+        EP = 1 - α·p_unver
+        
+        where:
+            α = 0.25 (default penalty coefficient)
+            p_unver = fraction of critical claims that are unverified
+        ```
+        
+        **Example:**
+        - If 3 of 4 critical claims are unverified: p_unver = 0.75
+        - EP = 1 - 0.25×0.75 = 0.8125
+        - RI_skeptical = RI × 0.8125 (19% reduction)
+        
+        **Purpose:** Explicitly discount optimistic projections when evidence is weak.
+        """)
+    
+    # Bottlenecks Section
+    st.header("🔍 Bottlenecks")
+    
+    with st.expander("**What are Bottlenecks?**"):
+        st.markdown("""
+        **Definition:** Specific frictions, blockers, or risk factors that could prevent the company from achieving its goals.
+        
+        **Key Attributes:**
+        - **Type**: Technical, manufacturing, regulatory, market, financial, integration
+        - **Location**: Where in the system/process the bottleneck occurs
+        - **Severity**: 0-5 scale (see above)
+        - **Verified**: Whether the bottleneck assessment is confirmed by independent sources
+        - **Owner**: Who is responsible for resolving it
+        - **Timeframe**: When it must be resolved
+        
+        **Examples:**
+        - "Scale-up uniformity" (severity 5) - cannot achieve pilot-scale production
+        - "Anchor customer pilot" (severity 5) - no validation pathway without it
+        - "UL certification" (severity 4) - required for market access
+        - "Unit economics proof" (severity 4) - need to demonstrate cost viability
+        """)
+    
+    # Additional Context
+    st.markdown("---")
+    st.header("📊 Using These Metrics")
+    
+    st.markdown("""
+    ### Decision Framework
+    
+    **High-potential companies typically show:**
+    - CCF > 0.5 (confident in claims)
+    - RI_skeptical > 0.4 (making real progress)
+    - CI < 0.7 (not overly constrained)
+    - RAR < 0.4 (manageable risk)
+    
+    **Red flags:**
+    - High CCF but low RI → exciting idea, early execution
+    - High CI + low RI → many blockers, not ready
+    - Low E score but high T/SP → unproven despite hype
+    - High RAR → likely to fail or face major delays
+    
+    ### Comparative Analysis
+    
+    When comparing companies:
+    1. **CCF** for overall promise
+    2. **RI_skeptical** for execution readiness
+    3. **CI** for near-term friction
+    4. **Bottleneck analysis** for specific risks
+    5. **E/T/SP breakdown** to understand evidence quality
+    
+    ### Next Steps Based on Scores
+    
+    To improve metrics:
+    - **Low E**: Arrange third-party testing, publish results, get certifications
+    - **Low T**: Partner with research institutions, cite relevant literature
+    - **Low SP**: Join credible accelerators, secure grants, get advisors
+    - **Low RI**: Focus on TRL advancement and pilot demonstrations
+    - **High CI**: Systematically address highest-severity bottlenecks first
+    """)
+    
+    st.markdown("---")
+    st.info("💡 **Tip:** Use the filters in the main dashboard to identify companies by specific thresholds. Export results to CSV for further analysis.")
+
+
 # Main app
 def main():
     st.title("📊 SBV Analysis Dashboard")
     st.markdown("Strategic Bottleneck Validation - Company Analysis Results")
+    
+    # Sidebar - Wiki/Help Button
+    st.sidebar.header("📚 Resources")
+    if st.sidebar.button("📖 SBV Wiki & Metrics Guide", use_container_width=True):
+        st.session_state.show_wiki = True
+    
+    # Show Wiki Modal if requested
+    if st.session_state.get('show_wiki', False):
+        show_wiki_page()
+        if st.button("✖️ Close Wiki", type="secondary"):
+            st.session_state.show_wiki = False
+            st.rerun()
+        return
     
     # Load data
     df = load_analyses()
