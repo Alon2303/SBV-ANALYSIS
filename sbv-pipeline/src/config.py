@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     tavily_api_key: Optional[str] = None
     
     # Database
-    database_url: str = "sqlite:///./data/sbv.db"
+    database_url: str = "sqlite:///data/sbv.db"
     
     # Google Sheets
     google_sheets_credentials_path: Optional[str] = None
