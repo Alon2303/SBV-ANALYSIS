@@ -5,12 +5,18 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 import sys
+import asyncio
+import tempfile
+import csv
+from datetime import datetime
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.storage import get_db, AnalysisRepository, Analysis
+from src.storage import get_db, AnalysisRepository, Analysis, init_db
 from src.config import settings
+from src.input import parse_company_file
+from src.orchestrator import JobManager
 
 
 # Page config
@@ -65,6 +71,24 @@ def get_analysis_detail(analysis_id: int):
     return None
 
 
+def run_analysis(companies: list):
+    """Run SBV analysis on a list of companies."""
+    try:
+        # Initialize database
+        init_db()
+        
+        # Create and process job
+        manager = JobManager()
+        job = manager.create_job(companies)
+        
+        # Run analysis
+        asyncio.run(manager.process_job(job.job_id))
+        
+        return job, None
+    except Exception as e:
+        return None, str(e)
+
+
 # Main app
 def main():
     st.title("📊 SBV Analysis Dashboard")
@@ -112,15 +136,156 @@ def main():
         st.metric("Avg RAR", f"{filtered_df['RAR'].mean():.3f}")
     
     # Tabs
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "➕ Add New Analysis",
         "📋 Company List",
         "📈 Visualizations",
         "🔍 Detailed Analysis",
         "📊 Comparative Analysis"
     ])
     
-    # Tab 1: Company List
+    # Tab 1: Add New Analysis
     with tab1:
+        st.subheader("Add New Companies for Analysis")
+        st.markdown("Upload a CSV file or enter company information manually to run SBV analysis.")
+        
+        # Check for OpenAI API key
+        if not settings.openai_api_key or settings.openai_api_key == "your-key-here":
+            st.error("⚠️ OpenAI API key not configured! Please set `OPENAI_API_KEY` in your environment or .env file.")
+            st.info("The analysis requires an OpenAI API key to work. Add it to your `.env` file or Streamlit Cloud secrets.")
+        
+        # Two input methods
+        input_method = st.radio(
+            "Choose input method:",
+            ["📤 Upload CSV", "✍️ Manual Entry"]
+        )
+        
+        companies_to_analyze = []
+        
+        if input_method == "📤 Upload CSV":
+            st.markdown("**CSV Format:** Must include `company_name` column. Optional: `homepage` column.")
+            st.markdown("Example:")
+            st.code("company_name,homepage\nDynami Battery Corp,https://dynami-battery.com/\nQuantumScape,https://www.quantumscape.com/")
+            
+            uploaded_file = st.file_uploader("Choose a CSV file", type=['csv'])
+            
+            if uploaded_file:
+                # Save to temp file and parse
+                try:
+                    content = uploaded_file.read().decode('utf-8')
+                    lines = content.splitlines()
+                    reader = csv.DictReader(lines)
+                    
+                    if 'company_name' not in reader.fieldnames:
+                        st.error("CSV must have 'company_name' column")
+                    else:
+                        for row in reader:
+                            company_name = row['company_name'].strip()
+                            if company_name:
+                                companies_to_analyze.append({
+                                    'company_name': company_name,
+                                    'homepage': row.get('homepage', '').strip() or None
+                                })
+                        
+                        st.success(f"✅ Loaded {len(companies_to_analyze)} companies from CSV")
+                        
+                        # Preview
+                        if companies_to_analyze:
+                            preview_df = pd.DataFrame(companies_to_analyze)
+                            st.dataframe(preview_df, use_container_width=True)
+                
+                except Exception as e:
+                    st.error(f"Error reading CSV: {e}")
+        
+        else:  # Manual Entry
+            st.markdown("Enter company information below:")
+            
+            col1, col2 = st.columns([2, 3])
+            
+            with col1:
+                company_name = st.text_input("Company Name", placeholder="e.g., Dynami Battery Corp")
+            with col2:
+                homepage = st.text_input("Homepage URL (optional)", placeholder="https://example.com")
+            
+            if st.button("➕ Add to List"):
+                if company_name:
+                    # Store in session state
+                    if 'manual_companies' not in st.session_state:
+                        st.session_state.manual_companies = []
+                    
+                    st.session_state.manual_companies.append({
+                        'company_name': company_name.strip(),
+                        'homepage': homepage.strip() if homepage else None
+                    })
+                    st.success(f"Added {company_name}")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a company name")
+            
+            # Show current list
+            if 'manual_companies' in st.session_state and st.session_state.manual_companies:
+                st.markdown("**Companies to analyze:**")
+                manual_df = pd.DataFrame(st.session_state.manual_companies)
+                st.dataframe(manual_df, use_container_width=True)
+                
+                companies_to_analyze = st.session_state.manual_companies
+                
+                if st.button("🗑️ Clear List"):
+                    st.session_state.manual_companies = []
+                    st.rerun()
+        
+        # Run analysis button
+        if companies_to_analyze:
+            st.markdown("---")
+            st.markdown(f"**Ready to analyze {len(companies_to_analyze)} companies**")
+            
+            if st.button("🚀 Start Analysis", type="primary", use_container_width=True):
+                if not settings.openai_api_key or settings.openai_api_key == "your-key-here":
+                    st.error("Cannot start analysis without OpenAI API key!")
+                else:
+                    with st.spinner("Running analysis... This may take several minutes."):
+                        progress_bar = st.progress(0)
+                        status_text = st.empty()
+                        
+                        status_text.text("Initializing analysis...")
+                        progress_bar.progress(10)
+                        
+                        job, error = run_analysis(companies_to_analyze)
+                        
+                        if error:
+                            st.error(f"❌ Analysis failed: {error}")
+                        else:
+                            progress_bar.progress(100)
+                            status_text.text("Analysis complete!")
+                            
+                            # Show results
+                            progress = job.progress
+                            
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Total", progress['total'])
+                            with col2:
+                                st.metric("Completed", progress['completed'], delta=f"{progress['percent']:.1f}%")
+                            with col3:
+                                st.metric("Failed", progress['failed'])
+                            
+                            if progress['failed'] > 0:
+                                with st.expander("⚠️ View Failed Companies"):
+                                    for task in job.companies:
+                                        if task.error:
+                                            st.markdown(f"**{task.company_name}**: {task.error}")
+                            
+                            st.success("✅ Analysis complete! Switch to the 'Company List' tab to view results.")
+                            
+                            # Clear manual entry list
+                            if 'manual_companies' in st.session_state:
+                                st.session_state.manual_companies = []
+                            
+                            # Clear cache to show new results
+                            st.cache_data.clear()
+    
+    # Tab 2: Company List
+    with tab2:
         st.subheader("Company Analysis Results")
         
         # Display table
@@ -152,8 +317,8 @@ def main():
             mime="text/csv"
         )
     
-    # Tab 2: Visualizations
-    with tab2:
+    # Tab 3: Visualizations
+    with tab3:
         st.subheader("Analysis Visualizations")
         
         col1, col2 = st.columns(2)
@@ -231,8 +396,8 @@ def main():
             )
             st.plotly_chart(fig4, use_container_width=True)
     
-    # Tab 3: Detailed Analysis
-    with tab3:
+    # Tab 4: Detailed Analysis
+    with tab4:
         st.subheader("Detailed Company Analysis")
         
         # Company selector
@@ -285,8 +450,8 @@ def main():
                 with st.expander("View Raw JSON"):
                     st.json(detail)
     
-    # Tab 4: Comparative Analysis
-    with tab4:
+    # Tab 5: Comparative Analysis
+    with tab5:
         st.subheader("Comparative Analysis")
         
         # Multi-select companies
