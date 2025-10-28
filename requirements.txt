@@ -1,5 +1,5 @@
 # Streamlit Cloud Compatible Requirements
-# Full dependencies for dashboard + analysis
+# Minimal set to avoid compilation issues
 
 # Dashboard
 streamlit
@@ -13,13 +13,10 @@ matplotlib
 
 # AI & Research
 openai>=1.0.0
-anthropic
 
-# Web Scraping (Playwright excluded - doesn't work on Streamlit Cloud)
+# Web Scraping (simple, no compilation needed)
 beautifulsoup4
-lxml
 requests
-aiohttp
 
 # CLI
 click
