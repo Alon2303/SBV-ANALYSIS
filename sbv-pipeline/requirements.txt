@@ -26,7 +26,7 @@ numpy==1.26.3
 jsonschema==4.21.1
 
 # Visualization
-streamlit==1.30.0
+streamlit==1.37.0
 plotly==5.18.0
 
 # Utilities
