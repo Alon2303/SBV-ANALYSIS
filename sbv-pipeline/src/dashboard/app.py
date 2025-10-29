@@ -879,6 +879,9 @@ def show_analysis_ui():
                             
                             # Clear cache to show new results
                             st.cache_data.clear()
+                            
+                            # Force rerun to reload data
+                            st.rerun()
 
 
 def show_visualizations(df):
