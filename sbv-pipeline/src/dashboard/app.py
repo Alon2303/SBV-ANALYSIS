@@ -61,6 +61,19 @@ def install_playwright_browsers():
 playwright_status = install_playwright_browsers()
 
 
+# Initialize database on startup
+@st.cache_resource
+def initialize_database():
+    """Initialize database tables on first run."""
+    try:
+        init_db()
+        return "✅ Database initialized"
+    except Exception as e:
+        return f"⚠️ Database init error: {str(e)[:100]}"
+
+db_status = initialize_database()
+
+
 # Page config
 st.set_page_config(
     page_title="SBV Analysis Dashboard",
