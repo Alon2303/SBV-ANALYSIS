@@ -609,11 +609,36 @@ def main():
     # Load data
     df = load_analyses()
     
-    if df.empty:
-        st.warning("No analyses found. Run analysis first using the CLI.")
-        st.code("python -m src.main analyze data/input/companies.csv")
-        return
+    # Create main tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Company List", "▶️ Run New Analysis", "📊 Visualizations", "ℹ️ Wiki"])
     
+    # Tab 1: Company List
+    with tab1:
+        if df.empty:
+            st.info("💡 No analyses found yet. Use the **'Run New Analysis'** tab to get started!", icon="ℹ️")
+        else:
+            show_company_list(df)
+    
+    # Tab 2: Run New Analysis
+    with tab2:
+        show_analysis_ui()
+    
+    # Tab 3: Visualizations
+    with tab3:
+        if df.empty:
+            st.info("No data to visualize yet. Run an analysis first!", icon="ℹ️")
+        else:
+            show_visualizations(df)
+    
+    # Tab 4: Wiki
+    with tab4:
+        show_wiki_page()
+    
+    return
+
+
+def show_company_list(df):
+    """Show company list and filters."""
     # Sidebar filters
     st.sidebar.header("Filters")
     
@@ -647,17 +672,16 @@ def main():
     with col5:
         st.metric("Avg RAR", f"{filtered_df['RAR'].mean():.3f}")
     
-    # Tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "➕ Add New Analysis",
-        "📋 Company List",
-        "📈 Visualizations",
-        "🔍 Detailed Analysis",
-        "📊 Comparative Analysis"
-    ])
+    # Just show the company table
+    st.subheader("📋 Company List")
     
-    # Tab 1: Add New Analysis
-    with tab1:
+    # Display table
+    st.dataframe(filtered_df, use_container_width=True)
+
+
+def show_analysis_ui():
+    """Show the analysis input UI."""
+    with st.container():
         st.subheader("Add New Companies for Analysis")
         st.markdown("Upload a CSV file or enter company information manually to run SBV analysis.")
         
@@ -855,223 +879,69 @@ def main():
                             
                             # Clear cache to show new results
                             st.cache_data.clear()
+
+
+def show_visualizations(df):
+    """Show visualization charts."""
+    col1, col2 = st.columns(2)
     
-    # Tab 2: Company List
-    with tab2:
-        st.subheader("Company Analysis Results")
-        
-        # Display table
-        display_cols = [
-            "Company", "CCF", "RI_Skeptical", "CI", "RAR",
-            "E", "T", "SP", "LV", "Bottlenecks"
-        ]
-        
-        # Format numeric columns
-        formatted_df = filtered_df[display_cols].copy()
-        for col in ["CCF", "RI_Skeptical", "CI", "RAR"]:
-            formatted_df[col] = formatted_df[col].apply(lambda x: f"{x:.3f}")
-        
-        st.dataframe(
-            formatted_df,
-            use_container_width=True,
-            height=400
+    with col1:
+        # CI vs RI Scatter
+        st.markdown("#### Constriction vs Readiness")
+        fig1 = px.scatter(
+            df,
+            x="CI",
+            y="RI_Skeptical",
+            size="CCF",
+            color="RAR",
+            hover_data=["Company"],
+            labels={"CI": "Constriction Index", "RI_Skeptical": "Readiness Index"},
+            color_continuous_scale="RdYlGn_r"
         )
-        
-        # Export button
-        csv_data = filtered_df.to_csv(index=False)
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv_data,
-            file_name="sbv_analysis_results.csv",
-            mime="text/csv"
+        st.plotly_chart(fig1, use_container_width=True)
+    
+    with col2:
+        # CCF Distribution
+        st.markdown("#### Claim Confidence Distribution")
+        fig2 = px.histogram(
+            df,
+            x="CCF",
+            nbins=20,
+            labels={"CCF": "Claim Confidence Factor"}
         )
+        st.plotly_chart(fig2, use_container_width=True)
     
-    # Tab 3: Visualizations
-    with tab3:
-        st.subheader("Analysis Visualizations")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # CI vs RI Scatter
-            st.markdown("#### Constriction vs Readiness")
-            fig1 = px.scatter(
-                filtered_df,
-                x="CI",
-                y="RI_Skeptical",
-                size="CCF",
-                color="RAR",
-                hover_name="Company",
-                hover_data=["CCF", "Bottlenecks"],
-                color_continuous_scale="RdYlGn_r",
-                labels={
-                    "CI": "Constriction Index (CI)",
-                    "RI_Skeptical": "Readiness Index (RI Skeptical)",
-                    "CCF": "Claim Confidence Factor",
-                    "RAR": "Readiness-Adjusted Risk"
-                }
-            )
-            fig1.update_layout(height=400)
-            st.plotly_chart(fig1, use_container_width=True)
-        
-        with col2:
-            # CCF Ranking
-            st.markdown("#### Claim Confidence Factor (Top 10)")
-            top_ccf = filtered_df.nlargest(10, "CCF")
-            fig2 = px.bar(
-                top_ccf,
-                x="CCF",
-                y="Company",
-                orientation="h",
-                color="CCF",
-                color_continuous_scale="RdYlGn"
-            )
-            fig2.update_layout(height=400, yaxis={'categoryorder': 'total ascending'})
-            st.plotly_chart(fig2, use_container_width=True)
-        
-        col3, col4 = st.columns(2)
-        
-        with col3:
-            # Readiness Components
-            st.markdown("#### Readiness Components (Average)")
-            readiness_avg = filtered_df[["TRL", "IRL", "ORL", "RCL"]].mean()
-            fig3 = go.Figure(data=[
-                go.Bar(
-                    x=["TRL", "IRL", "ORL", "RCL"],
-                    y=readiness_avg.values,
-                    marker_color=['#636EFA', '#EF553B', '#00CC96', '#AB63FA']
-                )
-            ])
-            fig3.update_layout(
-                height=400,
-                yaxis_title="Level (1-9)",
-                yaxis_range=[0, 9]
-            )
-            st.plotly_chart(fig3, use_container_width=True)
-        
-        with col4:
-            # Likely & Lovely Radar
-            st.markdown("#### Likely & Lovely (Average)")
-            ll_avg = filtered_df[["E", "T", "SP", "LV"]].mean()
-            fig4 = go.Figure(data=go.Scatterpolar(
-                r=ll_avg.values,
-                theta=["Evidence", "Theory", "Social Proof", "Lovely"],
-                fill='toself',
-                marker_color='#636EFA'
-            ))
-            fig4.update_layout(
-                height=400,
-                polar=dict(radialaxis=dict(visible=True, range=[0, 5]))
-            )
-            st.plotly_chart(fig4, use_container_width=True)
+    col3, col4 = st.columns(2)
     
-    # Tab 4: Detailed Analysis
-    with tab4:
-        st.subheader("Detailed Company Analysis")
-        
-        # Company selector
-        company_names = filtered_df["Company"].tolist()
-        selected_company = st.selectbox("Select Company", company_names)
-        
-        if selected_company:
-            company_row = filtered_df[filtered_df["Company"] == selected_company].iloc[0]
-            analysis_id = company_row["id"]
-            
-            # Load detailed analysis
-            detail = get_analysis_detail(analysis_id)
-            
-            if detail:
-                # Company header
-                st.markdown(f"### {detail['company']}")
-                if detail.get("homepage"):
-                    st.markdown(f"🔗 [{detail['homepage']}]({detail['homepage']})")
-                st.markdown(f"**Analysis Date:** {detail['as_of_date']}")
-                
-                # Key metrics
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("CI (Constriction)", f"{detail['constriction']['CI_fix']:.3f}")
-                with col2:
-                    st.metric("RI (Readiness)", f"{detail['readiness']['RI_skeptical']:.3f}")
-                with col3:
-                    st.metric("CCF (Confidence)", f"{detail['likely_lovely']['CCF']:.3f}")
-                with col4:
-                    st.metric("RAR (Risk)", f"{detail['readiness']['RAR']:.3f}")
-                
-                # Bottlenecks
-                st.markdown("#### 🚧 Bottlenecks")
-                if detail.get("bottlenecks"):
-                    bn_df = pd.DataFrame(detail["bottlenecks"])
-                    st.dataframe(
-                        bn_df[["id", "type", "location", "severity_adj", "verified", "owner", "timeframe"]],
-                        use_container_width=True
-                    )
-                else:
-                    st.info("No bottlenecks identified")
-                
-                # Citations
-                st.markdown("#### 📚 Citations")
-                if detail.get("citations"):
-                    for cit in detail["citations"]:
-                        st.markdown(f"- **{cit['claim']}**  \n  [{cit['url']}]({cit['url']}) (seen: {cit['date_seen']})")
-                
-                # Raw JSON
-                with st.expander("View Raw JSON"):
-                    st.json(detail)
-    
-    # Tab 5: Comparative Analysis
-    with tab5:
-        st.subheader("Comparative Analysis")
-        
-        # Multi-select companies
-        selected_companies = st.multiselect(
-            "Select companies to compare",
-            filtered_df["Company"].tolist(),
-            default=filtered_df["Company"].tolist()[:5] if len(filtered_df) >= 5 else filtered_df["Company"].tolist()
-        )
-        
-        if selected_companies:
-            compare_df = filtered_df[filtered_df["Company"].isin(selected_companies)]
-            
-            # Metrics comparison
-            st.markdown("#### Metrics Comparison")
-            
-            metrics = ["CI", "RI_Skeptical", "CCF", "RAR"]
-            fig = go.Figure()
-            
-            for metric in metrics:
-                fig.add_trace(go.Bar(
-                    name=metric,
-                    x=compare_df["Company"],
-                    y=compare_df[metric]
-                ))
-            
-            fig.update_layout(
-                barmode='group',
-                height=400,
-                xaxis_tickangle=-45
-            )
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Radar comparison
-            st.markdown("#### Likely & Lovely Comparison")
-            fig2 = go.Figure()
-            
-            for _, row in compare_df.iterrows():
-                fig2.add_trace(go.Scatterpolar(
+    with col3:
+        # Likely & Lovely Radar
+        st.markdown("#### Likely & Lovely Scores")
+        if len(df) > 0:
+            fig3 = go.Figure()
+            for _, row in df.head(5).iterrows():  # Top 5 companies
+                fig3.add_trace(go.Scatterpolar(
                     r=[row["E"], row["T"], row["SP"], row["LV"]],
                     theta=["Evidence", "Theory", "Social Proof", "Lovely"],
-                    fill='toself',
                     name=row["Company"]
                 ))
-            
-            fig2.update_layout(
-                height=500,
-                polar=dict(radialaxis=dict(visible=True, range=[0, 5]))
+            fig3.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])))
+            st.plotly_chart(fig3, use_container_width=True)
+    
+    with col4:
+        # Readiness Levels
+        st.markdown("#### Readiness Levels (TRL/IRL/ORL/RCL)")
+        if len(df) > 0:
+            readiness_df = df.head(10)[["Company", "TRL", "IRL", "ORL", "RCL"]]
+            fig4 = px.bar(
+                readiness_df,
+                x="Company",
+                y=["TRL", "IRL", "ORL", "RCL"],
+                barmode='group',
+                labels={"value": "Level (1-9)", "variable": "Type"}
             )
-            st.plotly_chart(fig2, use_container_width=True)
+            fig4.update_layout(xaxis_tickangle=-45)
+            st.plotly_chart(fig4, use_container_width=True)
 
 
 if __name__ == "__main__":
     main()
-
