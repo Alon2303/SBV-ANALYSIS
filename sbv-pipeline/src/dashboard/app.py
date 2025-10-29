@@ -16,9 +16,20 @@ import os
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.storage import get_db, AnalysisRepository, Analysis, init_db
-from src.config import settings, is_streamlit_cloud
+from src.config import settings
 from src.input import parse_company_file
 from src.orchestrator import JobManager
+
+
+# Check if running on Streamlit Cloud
+def is_streamlit_cloud() -> bool:
+    """Detect if running on Streamlit Cloud."""
+    import os
+    return (
+        os.getenv("STREAMLIT_RUNTIME_ENVIRONMENT") == "cloud" or
+        os.getenv("STREAMLIT_SHARING_MODE") is not None or
+        "/mount/src/" in os.getcwd()
+    )
 
 
 # Install Playwright browsers on first run (for Streamlit Cloud)

@@ -92,11 +92,16 @@ class Settings(BaseSettings):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        # Log where data is being stored
-        if is_streamlit_cloud():
-            print(f"🌐 Running on Streamlit Cloud - using temp directory: {self.data_dir}")
-        else:
-            print(f"💻 Running locally - using project directory: {self.data_dir}")
+        # Log where data is being stored (wrap in try/except for safety)
+        try:
+            import logging
+            logger = logging.getLogger(__name__)
+            if is_streamlit_cloud():
+                logger.info(f"Running on Streamlit Cloud - using temp directory: {self.data_dir}")
+            else:
+                logger.info(f"Running locally - using project directory: {self.data_dir}")
+        except Exception:
+            pass  # Silently fail if logging doesn't work during init
 
 
 # Global settings instance
