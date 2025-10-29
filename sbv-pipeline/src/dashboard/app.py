@@ -550,6 +550,11 @@ def main():
     else:
         st.sidebar.info(playwright_status, icon="ℹ️")
     
+    # Show database location info on Streamlit Cloud
+    from src.config import is_streamlit_cloud
+    if is_streamlit_cloud():
+        st.sidebar.warning("⚠️ **Note:** Data is stored in temporary storage and will be lost on app restart. Export results before closing.", icon="⚠️")
+    
     if st.sidebar.button("📖 SBV Wiki & Metrics Guide", use_container_width=True):
         st.session_state.show_wiki = True
     
