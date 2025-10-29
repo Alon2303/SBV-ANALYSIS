@@ -238,13 +238,20 @@ Be thorough and extract specific claims with numbers when available.
     ) -> List[Dict[str, Any]]:
         """Identify and score bottlenecks using LLM."""
         
+        # Check if we have enough data
+        if not company_info.get("description") and not company_info.get("technology"):
+            logger.warning("Insufficient data for bottleneck analysis - no description or technology info")
+            return []
+        
         prompt = BOTTLENECK_ANALYSIS_PROMPT.format(
             company_name=company_info.get("company_name", "Unknown"),
-            description=company_info.get("description", ""),
-            technology=company_info.get("technology", ""),
-            stage=company_info.get("stage", ""),
-            claims="\n".join(company_info.get("technical_claims", []))
+            description=company_info.get("description", "No description available"),
+            technology=company_info.get("technology", "Not specified"),
+            stage=company_info.get("stage", "Not specified"),
+            claims="\n".join(company_info.get("technical_claims", [])) or "No specific claims available"
         )
+        
+        logger.info(f"Analyzing bottlenecks with LLM for {company_info.get('company_name', 'Unknown')}...")
         
         try:
             response = await asyncio.to_thread(
@@ -253,10 +260,21 @@ Be thorough and extract specific claims with numbers when available.
                 system_prompt=RESEARCH_SYSTEM_PROMPT,
                 json_mode=True
             )
+            
+            logger.debug(f"LLM response for bottlenecks: {response[:500]}...")
+            
             result = self.llm.extract_json(response)
-            return result.get("bottlenecks", [])
+            bottlenecks = result.get("bottlenecks", [])
+            
+            if not bottlenecks:
+                logger.warning(f"LLM returned no bottlenecks for {company_info.get('company_name')}. Response keys: {result.keys()}")
+            else:
+                logger.info(f"Found {len(bottlenecks)} bottlenecks for {company_info.get('company_name')}")
+            
+            return bottlenecks
+            
         except Exception as e:
-            logger.error(f"Error analyzing bottlenecks: {e}")
+            logger.error(f"Error analyzing bottlenecks for {company_info.get('company_name')}: {e}", exc_info=True)
             return []
     
     async def score_readiness(

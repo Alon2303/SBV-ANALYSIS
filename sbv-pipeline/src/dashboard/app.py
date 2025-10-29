@@ -78,27 +78,40 @@ def load_analyses():
         
         data = []
         for a in analyses:
-            if a.status == "completed":
-                data.append({
-                    "id": a.id,
-                    "Company": a.company.name,
-                    "Homepage": a.company.homepage or "",
-                    "Date": a.as_of_date,
-                    "CI": a.CI_fix or 0.0,
-                    "RI": a.RI or 0.0,
-                    "RI_Skeptical": a.RI_skeptical or 0.0,
-                    "CCF": a.CCF or 0.0,
-                    "RAR": a.RAR or 0.0,
-                    "TRL": a.TRL_adj or 0.0,
-                    "IRL": a.IRL_adj or 0.0,
-                    "ORL": a.ORL_adj or 0.0,
-                    "RCL": a.RCL_adj or 0.0,
-                    "E": a.E or 0,
-                    "T": a.T or 0,
-                    "SP": a.SP or 0,
-                    "LV": a.LV or 0,
-                    "Bottlenecks": a.k or 0,
-                })
+            # Show all analyses, not just completed
+            row = {
+                "id": a.id,
+                "Company": a.company.name,
+                "Status": a.status.upper() if a.status else "UNKNOWN",
+                "Date": a.as_of_date,
+                "CI": a.CI_fix or 0.0,
+                "RI": a.RI or 0.0,
+                "RI_Skeptical": a.RI_skeptical or 0.0,
+                "CCF": a.CCF or 0.0,
+                "RAR": a.RAR or 0.0,
+                "Bottlenecks": a.k or 0,
+                "E": a.E or 0,
+                "T": a.T or 0,
+                "SP": a.SP or 0,
+                "LV": a.LV or 0,
+            }
+            
+            # Add error/warning indicators
+            if a.status == "failed":
+                error = a.error_message or "Unknown error"
+                # Check for specific error types
+                if "403" in error or "Forbidden" in error:
+                    row["Notes"] = "🚫 Site blocked"
+                elif "No content" in error or "could not be scraped" in error:
+                    row["Notes"] = "⚠️ Scraping failed"
+                else:
+                    row["Notes"] = f"❌ Error: {error[:50]}"
+            elif a.status == "completed" and a.k == 0:
+                row["Notes"] = "⚠️ No bottlenecks found"
+            else:
+                row["Notes"] = "✅ OK"
+            
+            data.append(row)
         
         return pd.DataFrame(data)
 
