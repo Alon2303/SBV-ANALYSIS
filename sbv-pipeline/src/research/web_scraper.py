@@ -102,37 +102,94 @@ def scrape_with_requests(url: str) -> Dict[str, Any]:
     """
     import requests
     from bs4 import BeautifulSoup
+    import time
     
-    try:
-        response = requests.get(url, timeout=10, headers={
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-        })
-        response.raise_for_status()
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Remove script and style elements
-        for script in soup(["script", "style", "nav", "footer"]):
-            script.decompose()
-        
-        text = soup.get_text()
-        lines = (line.strip() for line in text.splitlines())
-        text_content = '\n'.join(line for line in lines if line)
-        
-        return {
-            "url": url,
-            "title": soup.title.string if soup.title else None,
-            "text_content": text_content[:50000],
-            "success": True,
-            "error": None
-        }
+    # More complete headers to look like a real browser
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Cache-Control": "max-age=0"
+    }
     
-    except Exception as e:
-        logger.error(f"Error scraping {url} with requests: {str(e)}")
-        return {
-            "url": url,
-            "text_content": None,
-            "success": False,
-            "error": str(e)
-        }
+    # Try with retries
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(
+                url, 
+                timeout=15, 
+                headers=headers,
+                allow_redirects=True
+            )
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Remove script and style elements
+            for script in soup(["script", "style", "nav", "footer"]):
+                script.decompose()
+            
+            text = soup.get_text()
+            lines = (line.strip() for line in text.splitlines())
+            text_content = '\n'.join(line for line in lines if line)
+            
+            return {
+                "url": url,
+                "title": soup.title.string if soup.title else None,
+                "text_content": text_content[:50000],
+                "success": True,
+                "error": None
+            }
+        
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 403:
+                error_msg = f"403 Forbidden - {url} is blocking automated access. This site requires Playwright (browser automation) to scrape."
+                logger.warning(error_msg)
+                return {
+                    "url": url,
+                    "text_content": None,
+                    "success": False,
+                    "error": error_msg,
+                    "needs_playwright": True
+                }
+            elif attempt < max_retries - 1:
+                time.sleep(2)  # Wait before retry
+                continue
+            else:
+                logger.error(f"HTTP error scraping {url}: {str(e)}")
+                return {
+                    "url": url,
+                    "text_content": None,
+                    "success": False,
+                    "error": str(e)
+                }
+        
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(2)  # Wait before retry
+                continue
+            else:
+                logger.error(f"Error scraping {url} with requests: {str(e)}")
+                return {
+                    "url": url,
+                    "text_content": None,
+                    "success": False,
+                    "error": str(e)
+                }
+    
+    # Should never reach here, but just in case
+    return {
+        "url": url,
+        "text_content": None,
+        "success": False,
+        "error": "Max retries exceeded"
+    }
 

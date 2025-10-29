@@ -165,15 +165,24 @@ class CompanyResearcher:
         if not combined_text.strip():
             logger.error(f"No content scraped for {company_name} - all scraping attempts failed")
             
+            # Check if any failures were due to needing Playwright
+            needs_playwright = any(c.get("needs_playwright", False) for c in scraped_content)
+            
             # Provide detailed error information
             errors = [c.get("error", "unknown") for c in scraped_content if not c.get("success")]
             error_details = "; ".join(set(errors)) if errors else "No error details available"
             
+            if needs_playwright:
+                error_msg = f"This site blocks simple scrapers (403 Forbidden). Playwright browser automation is required but may still be installing on Streamlit Cloud. Try again in 1-2 minutes, or use a different company for now."
+            else:
+                error_msg = f"No content could be scraped. Details: {error_details}"
+            
             return {
-                "error": f"No content could be scraped. Details: {error_details}",
+                "error": error_msg,
                 "company_name": company_name,
                 "scraping_attempts": len(scraped_content),
-                "failed_urls": [c.get("url") for c in scraped_content]
+                "failed_urls": [c.get("url") for c in scraped_content],
+                "needs_playwright": needs_playwright
             }
         
         # Prompt for extracting company information
