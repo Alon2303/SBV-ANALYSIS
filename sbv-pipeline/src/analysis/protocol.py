@@ -30,7 +30,8 @@ class SBVProtocol:
         self,
         company_name: str,
         homepage: Optional[str] = None,
-        repository: Optional[AnalysisRepository] = None
+        repository: Optional[AnalysisRepository] = None,
+        manual_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Run complete SBV analysis on a company.
@@ -39,6 +40,7 @@ class SBVProtocol:
             company_name: Name of the company
             homepage: Optional homepage URL
             repository: Optional database repository for persistence
+            manual_data: Optional manual data to skip scraping
         
         Returns:
             Complete SBV analysis result matching sbv_tiny_schema.json
@@ -49,7 +51,8 @@ class SBVProtocol:
             # Step 0-2: Research & data gathering
             research_data = await self.researcher.research_company(
                 company_name,
-                homepage
+                homepage,
+                manual_data=manual_data
             )
             
             company_info = research_data["company_info"]

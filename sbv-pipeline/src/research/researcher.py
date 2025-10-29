@@ -24,7 +24,8 @@ class CompanyResearcher:
     async def research_company(
         self,
         company_name: str,
-        homepage: Optional[str] = None
+        homepage: Optional[str] = None,
+        manual_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Conduct comprehensive research on a company.
@@ -32,6 +33,7 @@ class CompanyResearcher:
         Args:
             company_name: Name of the company
             homepage: Optional homepage URL
+            manual_data: Optional manual data to skip scraping (for blocked sites)
         
         Returns:
             Dict with research results including:
@@ -42,6 +44,31 @@ class CompanyResearcher:
             - citations
         """
         logger.info(f"Researching {company_name}...")
+        
+        # If manual data provided, skip scraping
+        if manual_data:
+            logger.info(f"Using manual data for {company_name} (skipping scraping)")
+            company_info = {
+                "company_name": company_name,
+                "homepage": homepage,
+                "description": manual_data.get("description", ""),
+                "technology": manual_data.get("technology", ""),
+                "stage": manual_data.get("stage", "Unknown"),
+                "technical_claims": manual_data.get("technical_claims", []),
+                "value_proposition": manual_data.get("description", ""),
+                "industry": "Not specified",
+                "social_proof": {},
+                "evidence_urls": []
+            }
+            return {
+                "company_name": company_name,
+                "homepage": homepage,
+                "search_results": {"queries": [], "urls": [], "homepage": homepage},
+                "scraped_content": [],
+                "company_info": company_info,
+                "research_date": datetime.now().isoformat(),
+                "manual_entry": True
+            }
         
         # Step 1: Web search for company information
         search_results = await self._search_company(company_name, homepage)

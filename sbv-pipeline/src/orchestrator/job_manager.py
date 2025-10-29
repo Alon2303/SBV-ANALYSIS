@@ -27,6 +27,7 @@ class CompanyTask:
     """Individual company analysis task."""
     company_name: str
     homepage: Optional[str] = None
+    manual_data: Optional[Dict[str, Any]] = None
     status: JobStatus = JobStatus.PENDING
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
@@ -87,7 +88,8 @@ class JobManager:
         tasks = [
             CompanyTask(
                 company_name=c["company_name"],
-                homepage=c.get("homepage")
+                homepage=c.get("homepage"),
+                manual_data=c.get("manual_data")
             )
             for c in companies
         ]
@@ -163,7 +165,8 @@ class JobManager:
                 # Run SBV analysis
                 result = await self.protocol.analyze_company(
                     task.company_name,
-                    task.homepage
+                    task.homepage,
+                    manual_data=task.manual_data
                 )
                 
                 # Save to database

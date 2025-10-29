@@ -697,28 +697,87 @@ def main():
                     st.error(f"Error reading CSV: {e}")
         
         else:  # Manual Entry
-            st.markdown("Enter company information below:")
-            st.info("💡 **Tip:** Providing a homepage URL improves accuracy. If omitted, we'll try to guess it (e.g., 'Intel Corp' → www.intel.com)", icon="ℹ️")
+            st.markdown("### Manual Company Entry")
             
-            col1, col2 = st.columns([2, 3])
+            # Entry mode selection
+            entry_mode = st.radio(
+                "Entry Mode:",
+                ["Quick Entry (Name + URL)", "Full Entry (Skip Scraping)"],
+                help="Quick: We'll try to scrape. Full: Provide all data manually (use if website is blocked)"
+            )
             
-            with col1:
-                company_name = st.text_input("Company Name", placeholder="e.g., Intel Corp")
-            with col2:
-                homepage = st.text_input("Homepage URL (optional)", placeholder="https://www.intel.com")
+            if entry_mode == "Quick Entry (Name + URL)":
+                st.info("💡 **Tip:** Providing a homepage URL improves accuracy. If omitted, we'll try to guess it (e.g., 'Intel Corp' → www.intel.com)", icon="ℹ️")
+                
+                col1, col2 = st.columns([2, 3])
+                
+                with col1:
+                    company_name = st.text_input("Company Name", placeholder="e.g., Intel Corp")
+                with col2:
+                    homepage = st.text_input("Homepage URL (optional)", placeholder="https://www.intel.com")
+                    
+                manual_data = None
+                
+            else:  # Full Entry
+                st.info("🛠️ **Manual Entry Mode:** Use this when the website is blocked or unavailable. AI will analyze based on your description.", icon="ℹ️")
+                
+                company_name = st.text_input("Company Name *", placeholder="e.g., Form Energy")
+                homepage = st.text_input("Homepage URL (optional)", placeholder="https://formenergy.com")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    description = st.text_area(
+                        "Company Description *", 
+                        placeholder="Brief description of what the company does...",
+                        height=100
+                    )
+                    technology = st.text_input("Core Technology", placeholder="e.g., Iron-air battery")
+                    
+                with col2:
+                    stage = st.selectbox(
+                        "Development Stage",
+                        ["Research", "Prototype", "Pilot", "Pre-commercial", "Commercial", "Unknown"]
+                    )
+                    claims = st.text_area(
+                        "Key Technical Claims (one per line)",
+                        placeholder="100-hour duration storage\nCost below $20/kWh\n...",
+                        height=100
+                    )
+                
+                # Package manual data
+                manual_data = {
+                    "description": description,
+                    "technology": technology,
+                    "stage": stage,
+                    "technical_claims": [c.strip() for c in claims.split('\n') if c.strip()]
+                } if description else None
             
             if st.button("➕ Add to List"):
                 if company_name:
-                    # Store in session state
-                    if 'manual_companies' not in st.session_state:
-                        st.session_state.manual_companies = []
-                    
-                    st.session_state.manual_companies.append({
-                        'company_name': company_name.strip(),
-                        'homepage': homepage.strip() if homepage else None
-                    })
-                    st.success(f"Added {company_name}")
-                    st.rerun()
+                    # Validate manual entry mode
+                    if entry_mode == "Full Entry (Skip Scraping)" and not manual_data:
+                        st.error("Please provide at least a company description for manual entry")
+                    else:
+                        # Store in session state
+                        if 'manual_companies' not in st.session_state:
+                            st.session_state.manual_companies = []
+                        
+                        company_data = {
+                            'company_name': company_name.strip(),
+                            'homepage': homepage.strip() if homepage else None
+                        }
+                        
+                        # Add manual data if provided
+                        if manual_data:
+                            company_data['manual_data'] = manual_data
+                        
+                        st.session_state.manual_companies.append(company_data)
+                        
+                        if manual_data:
+                            st.success(f"✅ Added {company_name} (manual entry - will skip scraping)")
+                        else:
+                            st.success(f"✅ Added {company_name}")
+                        st.rerun()
                 else:
                     st.warning("Please enter a company name")
             

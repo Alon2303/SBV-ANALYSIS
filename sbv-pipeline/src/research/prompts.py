@@ -57,7 +57,9 @@ Base severity on:
 - 1: Low risk, easily addressable
 """
 
-READINESS_SCORING_PROMPT = """Score the readiness levels for this company:
+READINESS_SCORING_PROMPT = """Score the readiness levels for this company.
+
+**IMPORTANT: Respond with valid JSON format only.**
 
 Company: {company_name}
 Description: {description}
@@ -65,7 +67,7 @@ Technology: {technology}
 Stage: {stage}
 Key Claims: {claims}
 
-Provide scores (1-9) for:
+Provide scores (1-9) in JSON format for:
 
 **TRL (Technology Readiness Level):**
 1-2: Basic research
@@ -99,7 +101,9 @@ Return JSON:
 }}
 """
 
-LIKELY_LOVELY_SCORING_PROMPT = """Score the Likely & Lovely metrics for this company's main claims:
+LIKELY_LOVELY_SCORING_PROMPT = """Score the Likely & Lovely metrics for this company's main claims.
+
+**IMPORTANT: Respond with valid JSON format only.**
 
 Company: {company_name}
 Description: {description}
@@ -107,7 +111,7 @@ Technical Claims: {technical_claims}
 Social Proof: {social_proof}
 Evidence Sources: {evidence_sources}
 
-Provide scores (1-5) for:
+Provide scores (1-5) in JSON format for:
 
 **E (Evidence):**
 1: No public evidence, only company claims

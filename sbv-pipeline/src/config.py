@@ -47,7 +47,17 @@ class Settings(BaseSettings):
         if is_streamlit_cloud():
             # Use temp directory on Streamlit Cloud (writable)
             temp_dir = Path(tempfile.gettempdir()) / "sbv_data"
-            temp_dir.mkdir(exist_ok=True)
+            temp_dir.mkdir(exist_ok=True, parents=True)
+            # Verify it's writable
+            try:
+                test_file = temp_dir / ".write_test"
+                test_file.write_text("test")
+                test_file.unlink()
+                import logging
+                logging.info(f"✅ Using writable temp directory: {temp_dir}")
+            except Exception as e:
+                import logging
+                logging.error(f"❌ Temp directory not writable: {temp_dir} - {e}")
             return temp_dir
         else:
             # Use project data directory locally

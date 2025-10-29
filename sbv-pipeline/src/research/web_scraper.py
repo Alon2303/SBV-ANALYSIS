@@ -119,13 +119,17 @@ def scrape_with_requests(url: str) -> Dict[str, Any]:
         "Cache-Control": "max-age=0"
     }
     
-    # Try with retries
-    max_retries = 2
+    # Try with retries and exponential backoff
+    max_retries = 3
+    base_timeout = 20  # Increased from 15
+    
     for attempt in range(max_retries):
+        timeout = base_timeout + (attempt * 5)  # 20s, 25s, 30s
         try:
+            logger.info(f"Scraping attempt {attempt + 1}/{max_retries} for {url} (timeout: {timeout}s)")
             response = requests.get(
                 url, 
-                timeout=15, 
+                timeout=timeout, 
                 headers=headers,
                 allow_redirects=True
             )
@@ -161,7 +165,9 @@ def scrape_with_requests(url: str) -> Dict[str, Any]:
                     "needs_playwright": True
                 }
             elif attempt < max_retries - 1:
-                time.sleep(2)  # Wait before retry
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                logger.info(f"Retrying in {wait_time}s...")
+                time.sleep(wait_time)
                 continue
             else:
                 logger.error(f"HTTP error scraping {url}: {str(e)}")
@@ -172,9 +178,27 @@ def scrape_with_requests(url: str) -> Dict[str, Any]:
                     "error": str(e)
                 }
         
+        except requests.exceptions.Timeout as e:
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt
+                logger.warning(f"Timeout on attempt {attempt + 1}, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            else:
+                error_msg = f"Timeout after {max_retries} attempts (max {timeout}s)"
+                logger.error(f"Error scraping {url}: {error_msg}")
+                return {
+                    "url": url,
+                    "text_content": None,
+                    "success": False,
+                    "error": error_msg
+                }
+        
         except Exception as e:
             if attempt < max_retries - 1:
-                time.sleep(2)  # Wait before retry
+                wait_time = 2 ** attempt
+                logger.warning(f"Error on attempt {attempt + 1}: {str(e)[:100]}, retrying in {wait_time}s...")
+                time.sleep(wait_time)
                 continue
             else:
                 logger.error(f"Error scraping {url} with requests: {str(e)}")
