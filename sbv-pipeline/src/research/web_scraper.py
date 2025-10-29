@@ -90,7 +90,7 @@ class WebScraper:
         return await asyncio.gather(*tasks)
 
 
-async def scrape_with_requests(url: str) -> Dict[str, Any]:
+def scrape_with_requests(url: str) -> Dict[str, Any]:
     """
     Simple scraping with requests (fallback).
     

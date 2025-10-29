@@ -735,10 +735,10 @@ def main():
         )
         
         # Export button
-        csv = filtered_df.to_csv(index=False)
+        csv_data = filtered_df.to_csv(index=False)
         st.download_button(
             label="📥 Download CSV",
-            data=csv,
+            data=csv_data,
             file_name="sbv_analysis_results.csv",
             mime="text/csv"
         )
