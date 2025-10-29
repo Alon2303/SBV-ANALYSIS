@@ -8,12 +8,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def is_streamlit_cloud() -> bool:
     """Detect if running on Streamlit Cloud."""
-    # Streamlit Cloud sets specific environment variables
-    return (
-        os.getenv("STREAMLIT_RUNTIME_ENVIRONMENT") == "cloud" or
-        os.getenv("STREAMLIT_SHARING_MODE") is not None or
-        "/mount/src/" in os.getcwd()  # Streamlit Cloud path pattern
-    )
+    # Streamlit Cloud always uses /mount/src/ path
+    import sys
+    return "/mount/src/" in sys.executable or "/mount/src/" in os.getcwd()
 
 
 class Settings(BaseSettings):

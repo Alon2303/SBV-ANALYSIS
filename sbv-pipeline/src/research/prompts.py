@@ -12,7 +12,9 @@ Your role is to:
 Be skeptical and evidence-based. Distinguish between company claims and independently verified facts.
 Always cite sources and quantify claims when possible."""
 
-BOTTLENECK_ANALYSIS_PROMPT = """Analyze the following company and identify strategic bottlenecks that could prevent successful scale-up:
+BOTTLENECK_ANALYSIS_PROMPT = """Analyze the following company and identify strategic bottlenecks that could prevent successful scale-up.
+
+**IMPORTANT: Respond with valid JSON format only.**
 
 Company: {company_name}
 Description: {description}
