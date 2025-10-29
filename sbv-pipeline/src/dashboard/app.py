@@ -666,13 +666,14 @@ def main():
         
         else:  # Manual Entry
             st.markdown("Enter company information below:")
+            st.info("💡 **Tip:** Providing a homepage URL improves accuracy. If omitted, we'll try to guess it (e.g., 'Intel Corp' → www.intel.com)", icon="ℹ️")
             
             col1, col2 = st.columns([2, 3])
             
             with col1:
-                company_name = st.text_input("Company Name", placeholder="e.g., Dynami Battery Corp")
+                company_name = st.text_input("Company Name", placeholder="e.g., Intel Corp")
             with col2:
-                homepage = st.text_input("Homepage URL (optional)", placeholder="https://example.com")
+                homepage = st.text_input("Homepage URL (optional)", placeholder="https://www.intel.com")
             
             if st.button("➕ Add to List"):
                 if company_name:

@@ -79,7 +79,31 @@ class CompanyResearcher:
         urls = []
         
         if homepage:
+            # Clean and validate the URL
+            homepage = homepage.strip()
+            if not homepage.startswith(('http://', 'https://')):
+                homepage = 'https://' + homepage
             urls.append(homepage)
+        else:
+            # If no homepage provided, try to construct a likely URL
+            # Convert company name to domain-like format
+            domain_name = company_name.lower()
+            # Remove common suffixes
+            domain_name = domain_name.replace(' corp', '').replace(' corporation', '')
+            domain_name = domain_name.replace(' inc', '').replace(' incorporated', '')
+            domain_name = domain_name.replace(' ltd', '').replace(' limited', '')
+            domain_name = domain_name.replace(' llc', '').replace(',', '')
+            # Replace spaces with nothing or dash
+            domain_name = domain_name.strip().replace(' ', '')
+            
+            # Try common patterns
+            possible_urls = [
+                f"https://www.{domain_name}.com",
+                f"https://{domain_name}.com",
+            ]
+            
+            logger.info(f"No homepage provided for {company_name}. Will try: {possible_urls}")
+            urls.extend(possible_urls)
         
         # Construct likely URLs for common sources
         # In production, use actual search API
@@ -92,7 +116,7 @@ class CompanyResearcher:
         return {
             "queries": search_queries,
             "urls": urls,
-            "homepage": homepage
+            "homepage": homepage if homepage else urls[0] if urls else None
         }
     
     async def _scrape_urls(self, urls: List[str]) -> List[Dict[str, Any]]:
@@ -121,6 +145,15 @@ class CompanyResearcher:
     ) -> Dict[str, Any]:
         """Extract structured company information using LLM."""
         
+        # Debug: Log scraping results
+        logger.info(f"Scraping summary for {company_name}:")
+        logger.info(f"  - URLs attempted: {len(scraped_content)}")
+        for i, content in enumerate(scraped_content):
+            success = content.get("success", False)
+            text_len = len(content.get("text_content", "")) if content.get("text_content") else 0
+            error = content.get("error", "none")
+            logger.info(f"  - URL {i+1} ({content.get('url', 'unknown')}): success={success}, text_len={text_len}, error={error}")
+        
         # Combine all scraped text
         all_text = []
         for content in scraped_content:
@@ -130,10 +163,17 @@ class CompanyResearcher:
         combined_text = "\n\n---\n\n".join(all_text)
         
         if not combined_text.strip():
-            logger.warning(f"No content scraped for {company_name}")
+            logger.error(f"No content scraped for {company_name} - all scraping attempts failed")
+            
+            # Provide detailed error information
+            errors = [c.get("error", "unknown") for c in scraped_content if not c.get("success")]
+            error_details = "; ".join(set(errors)) if errors else "No error details available"
+            
             return {
-                "error": "No content could be scraped",
-                "company_name": company_name
+                "error": f"No content could be scraped. Details: {error_details}",
+                "company_name": company_name,
+                "scraping_attempts": len(scraped_content),
+                "failed_urls": [c.get("url") for c in scraped_content]
             }
         
         # Prompt for extracting company information
