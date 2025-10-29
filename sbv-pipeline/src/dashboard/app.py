@@ -16,7 +16,7 @@ import os
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.storage import get_db, AnalysisRepository, Analysis, init_db
-from src.config import settings
+from src.config import settings, is_streamlit_cloud
 from src.input import parse_company_file
 from src.orchestrator import JobManager
 
@@ -551,7 +551,6 @@ def main():
         st.sidebar.info(playwright_status, icon="ℹ️")
     
     # Show database location info on Streamlit Cloud
-    from src.config import is_streamlit_cloud
     if is_streamlit_cloud():
         st.sidebar.warning("⚠️ **Note:** Data is stored in temporary storage and will be lost on app restart. Export results before closing.", icon="⚠️")
     
