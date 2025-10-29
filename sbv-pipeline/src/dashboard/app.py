@@ -9,6 +9,8 @@ import asyncio
 import tempfile
 import csv
 from datetime import datetime
+import subprocess
+import os
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -17,6 +19,35 @@ from src.storage import get_db, AnalysisRepository, Analysis, init_db
 from src.config import settings
 from src.input import parse_company_file
 from src.orchestrator import JobManager
+
+
+# Install Playwright browsers on first run (for Streamlit Cloud)
+@st.cache_resource
+def install_playwright_browsers():
+    """Install Playwright browsers on first run. Cached so it only runs once."""
+    try:
+        # Check if playwright is available
+        import playwright
+        
+        # Try to install browsers (will skip if already installed)
+        result = subprocess.run(
+            ["playwright", "install", "chromium"],
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minutes timeout
+        )
+        
+        if result.returncode == 0:
+            return "✅ Playwright browsers ready"
+        else:
+            return f"⚠️ Playwright install warning: {result.stderr[:200]}"
+    except ImportError:
+        return "⚠️ Playwright not installed - will use requests fallback"
+    except Exception as e:
+        return f"⚠️ Playwright setup error: {str(e)[:200]}"
+
+# Run Playwright setup (cached, only runs once per deployment)
+playwright_status = install_playwright_browsers()
 
 
 # Page config
@@ -512,6 +543,13 @@ def main():
     
     # Sidebar - Wiki/Help Button
     st.sidebar.header("📚 Resources")
+    
+    # Show Playwright status
+    if "✅" in playwright_status:
+        st.sidebar.success(playwright_status, icon="✅")
+    else:
+        st.sidebar.info(playwright_status, icon="ℹ️")
+    
     if st.sidebar.button("📖 SBV Wiki & Metrics Guide", use_container_width=True):
         st.session_state.show_wiki = True
     

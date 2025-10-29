@@ -1,17 +1,29 @@
-# Streamlit Cloud Compatible Requirements
-# This is a minimal set for dashboard-only deployment
-# For full pipeline, see requirements-minimal.txt
+# Streamlit Cloud Requirements - Full Analysis Pipeline
+# Updated to support AI research and web scraping with Playwright
 
-# Core
+# Core Framework
 pydantic==2.5.3
 pydantic-settings==2.1.0
 
-# Database (SQLite only - no PostgreSQL)
+# Database (SQLite only for Streamlit Cloud)
 sqlalchemy==2.0.25
+aiosqlite==0.19.0
+
+# AI/LLM - Required for analysis
+openai==1.10.0
+anthropic==0.18.0
+tiktoken==0.5.2
+
+# Web Scraping - Required for research
+playwright==1.41.0
+beautifulsoup4==4.12.3
+requests==2.31.0
+aiohttp==3.9.1
 
 # Data Processing
 pandas==2.2.0
 numpy==1.26.3
+jsonschema==4.21.1
 
 # Visualization
 streamlit==1.30.0
@@ -19,4 +31,6 @@ plotly==5.18.0
 
 # Utilities
 python-dotenv==1.0.1
-
+httpx==0.26.0
+tenacity==8.2.3
+click==8.1.7
