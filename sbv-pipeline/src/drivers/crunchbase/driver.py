@@ -1,7 +1,7 @@
 """Crunchbase startup database driver."""
 import asyncio
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 import requests
 
