@@ -20,12 +20,27 @@ class Settings(BaseSettings):
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
+    crunchbase_api_key: Optional[str] = None
+    serpapi_key: Optional[str] = None
+    
+    # Data Source Driver Settings
+    enable_wayback: bool = True       # FREE - always enabled by default
+    enable_tavily: bool = False       # Paid - requires API key
+    enable_crunchbase: bool = False   # Paid - requires API key
+    enable_serpapi: bool = False      # Paid - requires API key
     
     # Database
     database_url: str = "sqlite:///data/sbv.db"
     
     # Google Sheets
     google_sheets_credentials_path: Optional[str] = None
+    
+    # Email (for backups)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    backup_email: Optional[str] = None
     
     # Application
     environment: str = "development"
@@ -89,6 +104,31 @@ class Settings(BaseSettings):
         """Get absolute database path - use temp location on Streamlit Cloud."""
         db_file = self.data_dir / "sbv.db"
         return f"sqlite:///{db_file.absolute()}"
+    
+    def get_driver_config(self) -> dict:
+        """
+        Get driver configuration for DriverManager.
+        
+        Returns:
+            Dict with driver settings
+        """
+        return {
+            "wayback": {
+                "enabled": self.enable_wayback,
+            },
+            "tavily": {
+                "enabled": self.enable_tavily,
+                "api_key": self.tavily_api_key
+            },
+            "crunchbase": {
+                "enabled": self.enable_crunchbase,
+                "api_key": self.crunchbase_api_key
+            },
+            "serpapi": {
+                "enabled": self.enable_serpapi,
+                "api_key": self.serpapi_key
+            }
+        }
     
     model_config = SettingsConfigDict(
         env_file=".env",
