@@ -19,6 +19,8 @@ from src.storage import get_db, AnalysisRepository, Analysis, init_db
 from src.config import settings
 from src.input import parse_company_file
 from src.orchestrator import JobManager
+from src.drivers import DriverManager
+from src.dashboard.components import show_source_config, show_progress_tracker
 
 
 # Check if running on Streamlit Cloud
@@ -72,6 +74,14 @@ def initialize_database():
         return f"⚠️ Database init error: {str(e)[:100]}"
 
 db_status = initialize_database()
+
+
+# Initialize driver manager
+@st.cache_resource
+def get_driver_manager():
+    """Get cached driver manager instance."""
+    driver_config = settings.get_driver_config()
+    return DriverManager(config=driver_config)
 
 
 # Page config
@@ -577,6 +587,79 @@ def show_wiki_page():
     st.info("💡 **Tip:** Use the filters in the main dashboard to identify companies by specific thresholds. Export results to CSV for further analysis.")
 
 
+def show_data_sources_config():
+    """Display data source configuration UI."""
+    st.title("⚙️ Data Source Configuration")
+    
+    st.markdown("""
+    Configure which data sources are used for company research. Each source provides different types of information:
+    
+    - **Wayback Machine** (FREE): Historical website snapshots, company age
+    - **Tavily AI Search** ($30/month): AI-powered web search, structured content
+    - **Crunchbase** ($29/month): Funding rounds, investors, employee count
+    - **SerpAPI** ($50/month): Google Search results, news, knowledge graphs
+    """)
+    
+    st.markdown("---")
+    
+    # Get driver manager
+    driver_manager = get_driver_manager()
+    
+    # Show source configuration UI
+    enabled_states = show_source_config(driver_manager)
+    
+    st.markdown("---")
+    
+    # Show current status
+    st.subheader("📊 Current Status")
+    
+    from src.dashboard.components.progress_tracker import show_source_status_badges
+    show_source_status_badges(driver_manager)
+    
+    st.markdown("---")
+    
+    # Test data sources
+    st.subheader("🧪 Test Data Sources")
+    
+    test_company = st.text_input(
+        "Test Company Name",
+        value="Intel Corp",
+        help="Enter a company name to test all enabled sources"
+    )
+    
+    test_homepage = st.text_input(
+        "Homepage URL (optional)",
+        value="https://www.intel.com",
+        help="Providing a homepage URL improves accuracy"
+    )
+    
+    if st.button("▶️ Run Test", type="primary"):
+        if test_company:
+            with st.spinner(f"Testing data sources for {test_company}..."):
+                # Run async test
+                import asyncio
+                
+                async def run_test():
+                    return await driver_manager.run_all(
+                        company_name=test_company,
+                        homepage=test_homepage if test_homepage else None
+                    )
+                
+                try:
+                    results = asyncio.run(run_test())
+                    
+                    st.success("✅ Test complete!")
+                    
+                    # Show results
+                    from src.dashboard.components.progress_tracker import show_results_summary
+                    show_results_summary(driver_manager)
+                    
+                except Exception as e:
+                    st.error(f"❌ Test failed: {str(e)}")
+        else:
+            st.warning("Please enter a company name")
+
+
 # Main app
 def main():
     st.title("📊 SBV Analysis Dashboard")
@@ -610,7 +693,13 @@ def main():
     df = load_analyses()
     
     # Create main tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 Company List", "▶️ Run New Analysis", "📊 Visualizations", "ℹ️ Wiki"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📋 Company List", 
+        "▶️ Run New Analysis", 
+        "📊 Visualizations", 
+        "⚙️ Data Sources",
+        "ℹ️ Wiki"
+    ])
     
     # Tab 1: Company List
     with tab1:
@@ -630,8 +719,12 @@ def main():
         else:
             show_visualizations(df)
     
-    # Tab 4: Wiki
+    # Tab 4: Data Sources Configuration
     with tab4:
+        show_data_sources_config()
+    
+    # Tab 5: Wiki
+    with tab5:
         show_wiki_page()
     
     return
